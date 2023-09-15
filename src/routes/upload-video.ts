@@ -5,6 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pipeline } from 'node:stream'
 import { promisify } from 'node:util'
+import { prisma } from '../lib/prisma'
 
 const pump = promisify(pipeline)
 
@@ -37,6 +38,14 @@ export async function uploadVideoRoute(app: FastifyInstance) {
 
     await pump(data.file, fs.createWriteStream(uploadDestination))
 
-    return res.send()
+    const video = await prisma.video.create({
+      data: {
+        name: data.filename,
+        path: uploadDestination,
+        transcription: '',
+      },
+    })
+
+    return { video }
   })
 }
